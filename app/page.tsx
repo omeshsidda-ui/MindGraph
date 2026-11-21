@@ -31,6 +31,8 @@ import {
   X,
   Play,
   Workflow,
+  Plus,
+  ChevronRight,
 } from "lucide-react";
 import { toPng } from "html-to-image";
 import { demo, type MindMap } from "../lib/map";
@@ -55,7 +57,7 @@ function Card({ data }: { data: { item: Item; index: number } }) {
       <Handle type="target" position={Position.Left} />
       <div className="tag">
         <Icon size={14} />
-        {["Central topic", "Branch", "Concept"][item.level]}
+        {item.level === 0 && "Central topic"}
       </div>
       <strong>{item.label}</strong>
       <Handle type="source" position={Position.Right} />
@@ -93,6 +95,7 @@ function Studio() {
     [busy, setBusy] = useState(false),
     [status, setStatus] = useState("");
   const flow = useReactFlow(),
+    composer = useRef<HTMLDialogElement>(null),
     canvas = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const timer = setTimeout(() => void flow.fitView({ padding: 0.15 }), 60);
@@ -139,6 +142,7 @@ function Studio() {
     );
   }
   function loadDemo() {
+    composer.current?.close();
     setMap(demo);
     select(null);
     setShowDemo(false);
@@ -158,6 +162,7 @@ function Studio() {
       setShowDemo(res.status === 503);
       const data = await res.json();
       if (!res.ok) throw Error(data.error);
+      composer.current?.close();
       setMap(data);
       select(null);
     } catch (e) {
@@ -214,17 +219,46 @@ function Studio() {
   return (
     <>
       <header>
-        <span className="brand">
-          <Workflow /> MindGraph
-        </span>
-        <button disabled={busy} onClick={loadDemo}>
-          <Play /> Try Demo
-        </button>
+        <div className="identity">
+          <span className="brand">
+            <Workflow /> MindGraph
+          </span>
+          <span className="crumb">
+            <ChevronRight /> Workspace
+          </span>
+        </div>
+        <div className="header-actions">
+          <button disabled={busy} onClick={loadDemo}>
+            <Play /> Try Demo
+          </button>
+          <button
+            className="new"
+            onClick={() => {
+              select(null);
+              setStatus("");
+              setShowDemo(false);
+              composer.current?.showModal();
+            }}
+          >
+            <Plus />
+            New map
+          </button>
+        </div>
       </header>
       <main>
         <div className="workspace">
-          <div className="source">
-            <h2>Create a map</h2>
+          <dialog ref={composer} aria-labelledby="create-title">
+            <div className="dialoghead">
+              <h2 id="create-title">New map</h2>
+              <button
+                className="close"
+                aria-label="Close composer"
+                onClick={() => composer.current?.close()}
+              >
+                <X />
+              </button>
+            </div>
+
             <section className="composer">
               <nav aria-label="Input type">
                 {modes.map((name, i) => {
@@ -277,30 +311,17 @@ function Studio() {
             </section>
             <p role="status">{status}</p>
             {showDemo && <button onClick={loadDemo}>Load Demo Map</button>}
-            <section className="branches">
-              <h2>Branches</h2>
-              {map.nodes
-                .filter((n) => n.level === 1)
-                .map((branch) => (
-                  <button
-                    key={branch.id}
-                    onClick={() => select(branch)}
-                    aria-pressed={selected?.id === branch.id}
-                  >
-                    <GitFork />
-                    {branch.label}
-                    <ArrowRight />
-                  </button>
-                ))}
-            </section>
-          </div>
+          </dialog>
           <section className="board">
             <div className="toolbar">
+              <div className="document-icon">
+                <Workflow />
+              </div>
               <div>
+                <h1>{map.title}</h1>
                 <small>
                   {map.nodes.length} nodes · {map.edges.length} connections
                 </small>
-                <h1>{map.title}</h1>
               </div>
               <div className="actions">
                 <button
@@ -319,6 +340,9 @@ function Studio() {
                 </button>
               </div>
             </div>
+            <p className="feedback" role="status">
+              {composer.current?.open ? "" : status}
+            </p>
             <div className="views">
               <button aria-pressed={!outline} onClick={() => setView("map")}>
                 <GitFork />
