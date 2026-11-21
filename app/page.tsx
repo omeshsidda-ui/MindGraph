@@ -229,7 +229,7 @@ function Studio() {
         </div>
         <div className="header-actions">
           <button disabled={busy} onClick={loadDemo}>
-            <Play /> Try Demo
+            <Play /> <span className="demo-label">Try </span>Demo
           </button>
           <button
             className="new"
@@ -249,7 +249,9 @@ function Studio() {
         <div className="workspace">
           <dialog ref={composer} aria-labelledby="create-title">
             <div className="dialoghead">
-              <h2 id="create-title">New map</h2>
+              <h2 id="create-title" tabIndex={-1} autoFocus>
+                New map
+              </h2>
               <button
                 className="close"
                 aria-label="Close composer"
@@ -270,7 +272,7 @@ function Studio() {
                       onClick={() => setMode(i)}
                     >
                       <Icon />
-                      {name}
+                      {["Topic", "YouTube", "Notes"][i]}
                     </button>
                   );
                 })}
@@ -281,25 +283,53 @@ function Studio() {
                   void generate();
                 }}
               >
-                <textarea
-                  aria-label={modes[mode]}
-                  rows={mode === 2 ? 3 : 1}
-                  maxLength={32000}
-                  required
-                  placeholder={
-                    [
-                      "Enter a topic to map…",
-                      "Paste a YouTube video URL…",
-                      "Paste your notes or article text…",
-                    ][mode]
+                <label htmlFor="source-input">
+                  {
+                    ["What would you like to map?", "Video link", "Your notes"][
+                      mode
+                    ]
                   }
-                  value={values[mode]}
-                  onChange={(e) =>
-                    setValues(
-                      values.map((v, i) => (i === mode ? e.target.value : v)),
-                    )
-                  }
-                />
+                </label>
+                {mode === 2 ? (
+                  <textarea
+                    id="source-input"
+                    rows={5}
+                    maxLength={32000}
+                    required
+                    placeholder={
+                      [
+                        "Enter a topic to map…",
+                        "Paste a YouTube video URL…",
+                        "Paste your notes or article text…",
+                      ][mode]
+                    }
+                    value={values[mode]}
+                    onChange={(e) =>
+                      setValues(
+                        values.map((v, i) => (i === mode ? e.target.value : v)),
+                      )
+                    }
+                  />
+                ) : (
+                  <input
+                    id="source-input"
+                    type={mode === 1 ? "url" : "text"}
+                    inputMode={mode === 1 ? "url" : "text"}
+                    maxLength={32000}
+                    required
+                    value={values[mode]}
+                    placeholder={
+                      mode === 1
+                        ? "https://www.youtube.com/watch?v=…"
+                        : "e.g. How solar panels work"
+                    }
+                    onChange={(e) =>
+                      setValues(
+                        values.map((v, i) => (i === mode ? e.target.value : v)),
+                      )
+                    }
+                  />
+                )}
                 <button
                   className="primary"
                   disabled={busy || !values[mode].trim()}
