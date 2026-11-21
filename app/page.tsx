@@ -87,6 +87,7 @@ function Studio() {
     [mode, setMode] = useState(0),
     [values, setValues] = useState(["", "", ""]),
     [selected, select] = useState<Item | null>(null),
+    [showDemo, setShowDemo] = useState(false),
     [busy, setBusy] = useState(false),
     [status, setStatus] = useState("");
   const flow = useReactFlow(),
@@ -95,8 +96,16 @@ function Studio() {
     const timer = setTimeout(() => void flow.fitView({ padding: 0.15 }), 60);
     return () => clearTimeout(timer);
   }, [map, flow]);
+  function loadDemo() {
+    setMap(demo);
+    select(null);
+    setShowDemo(false);
+    setStatus("Demo loaded.");
+    void flow.fitView();
+  }
   async function generate() {
     setBusy(true);
+    setShowDemo(false);
     setStatus("");
     try {
       const res = await fetch("/api/generate-map", {
@@ -104,6 +113,7 @@ function Studio() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ mode: modes[mode], input: values[mode] }),
       });
+      setShowDemo(res.status === 503);
       const data = await res.json();
       if (!res.ok) throw Error(data.error);
       setMap(data);
@@ -165,15 +175,7 @@ function Studio() {
         <span className="brand">
           <Workflow /> MindGraph
         </span>
-        <button
-          disabled={busy}
-          onClick={() => {
-            setMap(demo);
-            select(null);
-            setStatus("Demo loaded.");
-            void flow.fitView();
-          }}
-        >
+        <button disabled={busy} onClick={loadDemo}>
           <FlaskConical /> Try Demo
         </button>
       </header>
@@ -227,6 +229,7 @@ function Studio() {
           </form>
         </section>
         <p role="status">{status}</p>
+        {showDemo && <button onClick={loadDemo}>Load Demo Map</button>}
         <section className="board">
           <div className="toolbar">
             <div>
