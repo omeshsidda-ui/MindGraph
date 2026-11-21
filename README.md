@@ -41,3 +41,14 @@ Next.js App Router, TypeScript, React, Tailwind CSS, React Flow, freelm, Zod, yo
 ## License
 
 MIT
+
+### Free-tier generation in production
+
+Set either or both server-side secrets in Vercel under **Settings → Environment Variables → Production**, then redeploy. Visitors use the same workspace without credentials. Use free-tier projects or organizations to stay within free quotas. On a paid account these model IDs can incur charges.
+
+| Variable | Selected model | Provider documentation |
+| --- | --- | --- |
+| `GEMINI_API_KEY` | `gemini-3.5-flash-lite` | [Gemini pricing](https://ai.google.dev/gemini-api/docs/pricing) |
+| `GROQ_API_KEY` | `openai/gpt-oss-20b` | [Groq free-plan limits](https://console.groq.com/docs/rate-limits) |
+
+With both keys, freelm can route around provider failures within the shared deadline. The model list stays fixed to avoid discovery delays and unexpected model selections. With neither key, the default keyless pool remains available.
