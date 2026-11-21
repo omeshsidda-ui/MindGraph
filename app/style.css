@@ -1,0 +1,256 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+:root {
+  color: #0f172a;
+  background: #fafafa;
+  font-family: "Plus Jakarta Sans Variable", sans-serif;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+}
+header,
+.toolbar,
+form,
+.actions,
+.brand,
+button,
+nav,
+.tag {
+  display: flex;
+  align-items: center;
+}
+header {
+  height: 66px;
+  border-bottom: 1px solid #dedee6;
+  background: white;
+  justify-content: space-between;
+  padding: 0 4vw;
+}
+.brand {
+  font-size: 23px;
+  font-weight: 800;
+  letter-spacing: -1.4px;
+  gap: 9px;
+}
+.brand svg {
+  background: #4f46e5;
+  color: white;
+  padding: 5px;
+  border-radius: 9px;
+  width: 34px;
+  height: 34px;
+}
+main {
+  max-width: 1500px;
+  margin: auto;
+  padding: 28px 4vw;
+}
+h1 {
+  font-size: 29px;
+  letter-spacing: -1.4px;
+  font-weight: 750;
+  margin-bottom: 16px;
+}
+.composer,
+.board {
+  border: 1px solid #dddde6;
+  border-radius: 14px;
+  background: white;
+  overflow: hidden;
+}
+.composer {
+  padding: 12px;
+}
+button {
+  cursor: pointer;
+  gap: 7px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 650;
+  background: white;
+  border: 1px solid #dcdce5;
+  border-radius: 8px;
+  padding: 9px 13px;
+}
+button:hover {
+  background: #f4f3ff;
+}
+button:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid #4f46e5;
+}
+button svg {
+  width: 15px;
+  height: 15px;
+}
+nav {
+  gap: 4px;
+  margin-bottom: 10px;
+}
+nav button {
+  border: 0;
+  color: #596174;
+}
+nav button[aria-pressed="true"] {
+  background: #eeedff;
+  color: #493bc6;
+}
+form {
+  border: 1px solid #dedee8;
+  border-radius: 9px;
+  padding: 6px;
+  gap: 8px;
+}
+textarea {
+  flex: 1;
+  min-width: 0;
+  padding: 7px;
+  font: inherit;
+  font-size: 14px;
+  resize: vertical;
+}
+.primary,
+.primary:hover {
+  background: #4f46e5;
+  color: white;
+  border-color: #4f46e5;
+}
+.primary:disabled {
+  opacity: 0.75;
+}
+p[role="status"] {
+  font-size: 13px;
+  color: #51449c;
+  margin: 10px 0;
+  min-height: 2px;
+}
+.toolbar {
+  padding: 17px 22px;
+  justify-content: space-between;
+  gap: 10px;
+}
+.actions {
+  gap: 8px;
+}
+small,
+.tag,
+footer {
+  font-family: "JetBrains Mono Variable", monospace;
+}
+small {
+  color: #68618b;
+  letter-spacing: 1.5px;
+  font-size: 10px;
+}
+h2 {
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.65px;
+}
+.canvas {
+  position: relative;
+  height: clamp(390px, 54vh, 710px);
+  background: #fafafa;
+  border-block: 1px solid #e3e2eb;
+}
+.card {
+  width: 195px;
+  background: white;
+  border: 1px solid #cbc8de;
+  border-radius: 12px;
+  padding: 13px 16px;
+  box-shadow: 0 3px 8px #1d18400b;
+}
+.card strong {
+  display: block;
+  font-size: 16px;
+  line-height: 1.22;
+  margin-top: 7px;
+  overflow-wrap: anywhere;
+}
+.tag {
+  gap: 6px;
+  text-transform: uppercase;
+  font-size: 9px;
+  letter-spacing: 1px;
+  color: #696182;
+}
+.level0 {
+  background: #4f46e5;
+  color: white;
+  border-color: #453cd2;
+}
+.level0 .tag {
+  color: #e2dfff;
+}
+.level1 {
+  background: #efedff;
+  border-color: #b7aff6;
+  color: #373078;
+}
+.react-flow__handle {
+  background: #9990d9;
+  border: 1px solid white;
+}
+.close {
+  float: right;
+}
+aside {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  bottom: 10px;
+  width: min(320px, 92%);
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  background: white;
+  padding: 20px;
+  overflow: auto;
+  box-shadow: 0 6px 24px #17103516;
+}
+aside h2 {
+  margin: 18px 0 10px;
+}
+aside p,
+li {
+  font-size: 14px;
+  line-height: 1.7;
+}
+aside h3 {
+  margin: 20px 0 8px;
+  font-weight: 700;
+}
+ul {
+  list-style: disc;
+  padding-left: 18px;
+}
+footer {
+  padding: 10px 18px;
+  font-size: 11px;
+  color: #69677c;
+}
+footer span {
+  margin: 0 5px;
+}
+@media (max-width: 690px) {
+  .toolbar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .actions {
+    flex-wrap: wrap;
+  }
+  main {
+    padding: 18px 12px;
+  }
+  button {
+    padding: 8px;
+  }
+  .canvas {
+    height: 52vh;
+  }
+}
