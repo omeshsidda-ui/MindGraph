@@ -23,11 +23,13 @@ import {
   Lock,
   Type,
   Video,
-  Sparkles,
+  ArrowRight,
+  ListTree,
+  GitFork,
   Download,
   Copy,
   X,
-  FlaskConical,
+  Play,
   Workflow,
 } from "lucide-react";
 import { toPng } from "html-to-image";
@@ -69,7 +71,7 @@ function layout(map: MindMap) {
       .filter((e) => e.source === item.id)
       .map((e) => map.nodes.find((n) => n.id === e.target)!);
     const ys = children.map(place);
-    const y = ys.length ? (ys[0] + ys[ys.length - 1]) / 2 : row++ * 135;
+    const y = ys.length ? (ys[0] + ys[ys.length - 1]) / 2 : row++ * 99;
     positions.set(item.id, y);
     return y;
   }
@@ -96,6 +98,46 @@ function Studio() {
     const timer = setTimeout(() => void flow.fitView({ padding: 0.15 }), 60);
     return () => clearTimeout(timer);
   }, [map, flow]);
+  const [view, setView] = useState<"map" | "outline" | null>(null);
+  const [phone, setPhone] = useState(false);
+  useEffect(() => {
+    const query = window.matchMedia("(max-width: 760px)");
+    const sync = () => setPhone(query.matches);
+    sync();
+    query.addEventListener("change", sync);
+    return () => query.removeEventListener("change", sync);
+  }, []);
+  const outline = (view ?? (phone ? "outline" : "map")) === "outline";
+  useEffect(() => {
+    if (!outline) {
+      const timer = setTimeout(() => void flow.fitView({ padding: 0.12 }), 100);
+      return () => clearTimeout(timer);
+    }
+  }, [outline, flow]);
+  useEffect(() => {
+    if (!selected) return;
+    const dismiss = (event: KeyboardEvent) => {
+      if (event.key === "Escape") select(null);
+    };
+    window.addEventListener("keydown", dismiss);
+    return () => window.removeEventListener("keydown", dismiss);
+  }, [selected]);
+  function outlineRow(item: Item): React.ReactNode {
+    return (
+      <li key={item.id}>
+        <button onClick={() => select(item)}>
+          <span className={"dot d" + item.level} />
+          {item.label}
+          <ArrowRight />
+        </button>
+        <ul>
+          {map.edges
+            .filter((e) => e.source === item.id)
+            .map((e) => outlineRow(map.nodes.find((n) => n.id === e.target)!))}
+        </ul>
+      </li>
+    );
+  }
   function loadDemo() {
     setMap(demo);
     select(null);
@@ -176,121 +218,170 @@ function Studio() {
           <Workflow /> MindGraph
         </span>
         <button disabled={busy} onClick={loadDemo}>
-          <FlaskConical /> Try Demo
+          <Play /> Try Demo
         </button>
       </header>
       <main>
-        <h1>Map workspace</h1>
-        <section className="composer">
-          <nav aria-label="Input type">
-            {modes.map((name, i) => {
-              const Icon = [Type, Video, FileText][i];
-              return (
+        <div className="workspace">
+          <div className="source">
+            <h2>Create a map</h2>
+            <section className="composer">
+              <nav aria-label="Input type">
+                {modes.map((name, i) => {
+                  const Icon = [Type, Video, FileText][i];
+                  return (
+                    <button
+                      key={name}
+                      aria-pressed={mode === i}
+                      onClick={() => setMode(i)}
+                    >
+                      <Icon />
+                      {name}
+                    </button>
+                  );
+                })}
+              </nav>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  void generate();
+                }}
+              >
+                <textarea
+                  aria-label={modes[mode]}
+                  rows={mode === 2 ? 3 : 1}
+                  maxLength={32000}
+                  required
+                  placeholder={
+                    [
+                      "Enter a topic to map…",
+                      "Paste a YouTube video URL…",
+                      "Paste your notes or article text…",
+                    ][mode]
+                  }
+                  value={values[mode]}
+                  onChange={(e) =>
+                    setValues(
+                      values.map((v, i) => (i === mode ? e.target.value : v)),
+                    )
+                  }
+                />
                 <button
-                  key={name}
-                  aria-pressed={mode === i}
-                  onClick={() => setMode(i)}
+                  className="primary"
+                  disabled={busy || !values[mode].trim()}
                 >
-                  <Icon />
-                  {name}
+                  <ArrowRight />
+                  {busy ? "Generating…" : "Generate map"}
                 </button>
-              );
-            })}
-          </nav>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              void generate();
-            }}
-          >
-            <textarea
-              aria-label={modes[mode]}
-              rows={mode === 2 ? 3 : 1}
-              maxLength={32000}
-              required
-              placeholder={
-                [
-                  "Enter a topic to map…",
-                  "Paste a YouTube video URL…",
-                  "Paste your notes or article text…",
-                ][mode]
-              }
-              value={values[mode]}
-              onChange={(e) =>
-                setValues(
-                  values.map((v, i) => (i === mode ? e.target.value : v)),
-                )
-              }
-            />
-            <button className="primary" disabled={busy || !values[mode].trim()}>
-              <Sparkles />
-              {busy ? "Generating…" : "Generate map"}
-            </button>
-          </form>
-        </section>
-        <p role="status">{status}</p>
-        {showDemo && <button onClick={loadDemo}>Load Demo Map</button>}
-        <section className="board">
-          <div className="toolbar">
-            <div>
-              <small>MIND MAP</small>
-              <h2>{map.title}</h2>
-            </div>
-            <div className="actions">
-              <button onClick={download}>
-                <Download /> Download PNG
-              </button>
-              <button onClick={copy}>
-                <Copy /> Copy Markdown Outline
-              </button>
-            </div>
+              </form>
+            </section>
+            <p role="status">{status}</p>
+            {showDemo && <button onClick={loadDemo}>Load Demo Map</button>}
+            <section className="branches">
+              <h2>Branches</h2>
+              {map.nodes
+                .filter((n) => n.level === 1)
+                .map((branch) => (
+                  <button
+                    key={branch.id}
+                    onClick={() => select(branch)}
+                    aria-pressed={selected?.id === branch.id}
+                  >
+                    <GitFork />
+                    {branch.label}
+                    <ArrowRight />
+                  </button>
+                ))}
+            </section>
           </div>
-          <div className="canvas" ref={canvas}>
-            <ReactFlow
-              nodes={layout(map)}
-              edges={map.edges.map((e) => ({
-                ...e,
-                id: JSON.stringify([e.source, e.target]),
-                type: "smoothstep",
-                style: { stroke: "#aaa5de", strokeWidth: 2 },
-              }))}
-              nodeTypes={nodeTypes}
-              fitView
-              minZoom={0.1}
-              nodesConnectable={false}
-              nodesDraggable={false}
-              onNodeClick={(_, n) => select(n.data.item)}
-              onPaneClick={() => select(null)}
+          <section className="board">
+            <div className="toolbar">
+              <div>
+                <small>
+                  {map.nodes.length} nodes · {map.edges.length} connections
+                </small>
+                <h1>{map.title}</h1>
+              </div>
+              <div className="actions">
+                <button
+                  aria-label="Download PNG"
+                  title="Download PNG"
+                  onClick={download}
+                >
+                  <Download /> <span>PNG</span>
+                </button>
+                <button
+                  aria-label="Copy Markdown Outline"
+                  title="Copy Markdown Outline"
+                  onClick={copy}
+                >
+                  <Copy /> <span>Markdown</span>
+                </button>
+              </div>
+            </div>
+            <div className="views">
+              <button aria-pressed={!outline} onClick={() => setView("map")}>
+                <GitFork />
+                Map
+              </button>
+              <button aria-pressed={outline} onClick={() => setView("outline")}>
+                <ListTree />
+                Outline
+              </button>
+            </div>
+            <div
+              className={"canvas " + (outline ? "reading" : "")}
+              ref={canvas}
             >
-              <Background color="#d4d4df" gap={18} size={1} />
-              <Controls showInteractive={false} />
-            </ReactFlow>
-            {selected && (
-              <aside>
-                <button
-                  className="close"
-                  aria-label="Close details"
-                  onClick={() => select(null)}
+              <div className="graph-layer" inert={outline}>
+                <ReactFlow
+                  nodes={layout(map)}
+                  edges={map.edges.map((e) => ({
+                    ...e,
+                    id: JSON.stringify([e.source, e.target]),
+                    type: "default",
+                    style: { stroke: "#aaa6c4", strokeWidth: 2 },
+                  }))}
+                  nodeTypes={nodeTypes}
+                  fitView
+                  minZoom={0.1}
+                  nodesConnectable={false}
+                  nodesDraggable={false}
+                  onNodeClick={(_, n) => select(n.data.item)}
+                  onPaneClick={() => select(null)}
                 >
-                  <X />
-                </button>
-                <small>NODE DETAILS</small>
-                <h2>{selected.label}</h2>
-                <p>{selected.summary}</p>
-                <h3>Key takeaways</h3>
-                <ul>
-                  {selected.keyTakeaways.map((t, i) => (
-                    <li key={i}>{t}</li>
-                  ))}
-                </ul>
-              </aside>
-            )}
-          </div>
-          <footer>
-            {map.nodes.length} nodes <span>·</span> {map.edges.length}{" "}
-            connections
-          </footer>
-        </section>
+                  <Background color="#d4d4df" gap={18} size={1} />
+                  <Controls showInteractive={false} />
+                </ReactFlow>
+              </div>
+              {outline && (
+                <div className="reader">
+                  <ul>{outlineRow(map.nodes.find((n) => n.level === 0)!)}</ul>
+                </div>
+              )}
+              {selected && (
+                <aside aria-label="Node details">
+                  <button
+                    className="close"
+                    aria-label="Close details"
+                    onClick={() => select(null)}
+                  >
+                    <X />
+                  </button>
+                  <small>NODE DETAILS</small>
+                  <h2>{selected.label}</h2>
+                  <p>{selected.summary}</p>
+                  <h3>Key takeaways</h3>
+                  <ul>
+                    {selected.keyTakeaways.map((t, i) => (
+                      <li key={i}>{t}</li>
+                    ))}
+                  </ul>
+                </aside>
+              )}
+            </div>
+          </section>
+        </div>
       </main>
     </>
   );
